@@ -1,0 +1,304 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- <script src="D:\project\test\jquery-3.3.1.js"></script> -->
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script src="http://localhost:8001/socket.io/socket.io.js"></script>
+
+<style>
+
+    
+    h1{
+        text-align: center;
+        border:1px;
+    }
+    table { 
+        float:left;
+        border:1px solid #000; 
+        font-family: 微軟正黑體; 
+        font-size:16px; 
+        width:100%;
+        border:1px solid #000;
+        text-align:center;
+        border-collapse:collapse;
+        
+    } 
+    th { 
+      background-color: #009FCC;
+      padding:10px;
+      border:1px solid #000;
+      width:50px;
+      color:#fff;
+    } 
+    td { 
+        border:1px solid #000;
+        padding:5px;
+        width:65px;
+        height:50px;
+    } 
+    
+    #Header{
+        width:800px;
+        height:200px;
+        text-align:center;
+        line-height:80px;
+        font-size:15px;
+        color:#000000;
+        font-weight:bold;
+        background-color:#f9c81e;
+        margin: auto;
+		border-radius:25px;
+		
+    }
+    
+    #body{
+        width: 90%;
+        height:80%;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        
+    }
+    
+    #Right{
+        width: 50%;
+        height:auto;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        vertical-align:super;
+        <!-- float:right; -->
+        
+    }
+    
+    #Left{
+        width: 50%;
+        height:80%;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        vertical-align:super;
+        <!-- float:left; -->
+    }
+    
+    #search{
+        width: 50%;
+        height:80%;
+        margin: auto;
+        
+    }
+    
+    #loading {
+    position: fixed;
+    z-index: 400;
+    width: 90%;
+    height: 80%;
+    top: 250;
+    left: 5%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #595758;
+    background-color: #ffffff;
+    display:none
+    }
+
+    
+</style>
+</head>
+
+<script>
+
+</script>
+</head>
+
+
+
+<body>
+	<div id="Header" style="line-height:40px">
+		<form id='search'>
+			日期：<input id='txt_date1' style="line-height:26px" type='text' name='date1'> ~ <input id='txt_date2' style="line-height:26px" type='text' name='date2'><br>
+			主隊：<input id='txt_teamA' style="line-height:26px" type='text' name='hometeam'><br>
+			客隊：<input id='txt_teamB' style="line-height:26px" type='text' name='awayteam'><br> 
+			<input style="line-height:26px" type='button' value='搜尋' id='search_but' >  
+		</form>
+		
+        
+        
+		<form id='update'>
+			<input style="line-height:26px" type='button' value='更新資料' id='update_but'>
+		</form>
+	</div>
+    
+    <div id='Body'></div>
+        <div id="loading">
+            <img src="img/loading.gif" alt="loading.." />
+        </div> 
+    
+	<form id='loadpage'>
+		<input  type="hidden" name='newpage' value='newpage' >
+	</form> 
+</body>
+</html>
+
+<script>
+
+var socket= io.connect('http://localhost:8001');
+
+
+ //載入頁面、查詢表單
+ function show_data(data){
+					show='<div style="width:1200px;margin:auto">';
+					$.each(data,function(i,n){
+					show+='<table class="but"><tr><th colspan="7" class="toggle">'+i+'</th></tr>';
+					show+='<table class="act"><tr><th>時間</th><th>主場隊伍</th><th>客場隊伍</th><th>主場賠率</th><th>平手賠率</th><th>客場賠率</th><th>賭注數</th></r>';
+					$.each(n,function(i1,n1){
+						show+='<tr><td>'+n1['time']+'</td><td>'+n1['teamA']+'</td><td>'+n1['teamB']+'</td><td>'+n1['odds_home']+'</td><td>'+n1['odds_draw']+'</td><td>'+n1['odds_away']+'</td><td>'+n1['bet']+'</td></tr>';
+						
+					});
+					show+='</table>';
+				}); 
+				show+='</table></div>'; 
+			}  
+
+//傳輸測試
+<!-- var k="1213213"; -->
+<!-- socket.emit('but_search',{'search':k}); -->
+	
+// 載入、查詢表單function
+socket.on('sql_data',function(data){
+	<!-- show='<div style="width:1200px;margin:auto">'; -->
+    <!-- console.log(data); -->
+    show_data(data);
+
+     //每次都將之前印的表單清除，避免表格重複印出
+    $('#Body').append(show); 
+    
+    
+    $(document).ready(function(){
+        var i=1;
+        $(".but").on("click",function(){
+            
+            var sub_str=$(this).text().substr(0,10);
+            // var str2=substr(str,0,4);
+            if(i==1){
+                
+                $(this).next('.act').hide(); 
+                $(this).find('.toggle').text(sub_str+' ▼');
+                i-=1;
+                
+            }
+            else{
+                $(this).next('.act').show();
+                $(this).find('.toggle').text(sub_str);
+                i+=1;
+            }
+        });
+    });
+});
+
+//接收server資料並印出「更新」表單
+socket.on('upd_data',function(data){
+    <!-- console.log(data); -->
+    jQuery("#loading").hide();
+    
+    show_upd='<div id="right"><table><tr><th colspan="8">資料已更新</th></tr><tr><th>日期</th><th>時間</th><th>主場隊伍</th><th>客場隊伍</th><th>主場賠率</th><th>平局賠率</th><th>客場賠率</th><th>賭注數</th></tr>';
+    $.each(data,function(i,n){
+         <!-- $.each(n,function(i1,n1){ -->
+              <!-- console.log(n1['time']); -->
+             
+             
+            show_upd+='<tr><td>'+n['date']+'</td><td>'+n['time']+'</td><td>'+n['teamA']+'</td><td>'+n['teamB']+'</td><td>'+n['odds_home']+'</td><td>'+n['odds_draw']+'</td><td>'+n['odds_away']+'</td><td>'+n['bet']+'</td></tr>';
+            
+            <!-- // $.each(n1,function(i2,n2){ -->
+                <!-- // console.log(n2['time']); -->
+            <!-- // }); -->
+        <!-- });  -->
+        
+    });  
+    show_upd+='</table></div>';   
+      //每次都將之前印的表單清除，避免表格重複印出
+    $('#Body').append(show_upd);
+});
+
+
+//接收server資料並印出「寫入」表單
+socket.on('ins_data',function(data){
+    <!-- console.log(data); -->
+
+    jQuery("#loading").hide();
+    
+    show_ins='<div id="right"><table><tr><th colspan="8">新資料已寫入</th></tr><tr><th>日期</th><th>時間</th><th>主場隊伍</th><th>客場隊伍</th><th>主場賠率</th><th>平局賠率</th><th>客場賠率</th><th>賭注數</th></tr>';
+    $.each(data,function(i,n){
+         <!-- $.each(n,function(i1,n1){ -->
+             // console.log(n1['time']);
+            show_ins+='<tr><td>'+n['date']+'</td><td>'+n['time']+'</td><td>'+n['teamA']+'</td><td>'+n['teamB']+'</td><td>'+n['odds_home']+'</td><td>'+n['odds_draw']+'</td><td>'+n['odds_away']+'</td><td>'+n['bet']+'</td></tr>';
+            // $.each(n1,function(i2,n2){
+                // console.log(n2['time']);
+            // });
+        <!-- });  -->
+        
+    });  
+    show_ins+='</table></div>';  
+    
+      
+    //每次都將之前印的表單清除，避免表格重複印出
+    
+    $('#Body').append(show_ins);
+});
+
+
+
+
+$(function(){
+	socket.emit('but_search','new');
+});
+	
+	
+<!-- var Search()=function(){ -->
+		<!-- socket.emit('but_search',{'search':'search'}) -->
+	<!-- alert('12132'); -->
+<!-- } -->
+
+
+$(document).ready(function(){
+
+	//click搜尋按鈕, 傳送4個input的值
+	$('#search_but').click(function(){
+        $('#Body').empty(); 
+		<!-- var txt_date= document.getElementById("txt_date1").value;  -->
+		<!-- var txt_date='1213'; -->
+		socket.emit('but_search',{'date1':document.getElementById("txt_date1").value,
+		'date2':document.getElementById("txt_date2").value,
+		'teamA':document.getElementById("txt_teamA").value,
+		'teamB':document.getElementById("txt_teamB").value
+		}); 
+	});
+    
+	//click更新按鈕, 傳送更新需求到server
+    $('#update_but').click(function(){
+        $('#Body').empty();
+       
+		socket.emit('but_update','a'); 
+        jQuery("#loading").show();
+        
+	});
+    
+   
+    
+});		
+	
+</script>
+

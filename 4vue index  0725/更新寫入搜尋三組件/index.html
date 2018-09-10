@@ -1,0 +1,241 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!-- <script src="D:\project\test\jquery-3.3.1.js"></script> -->
+
+
+
+<style>
+
+    
+    h1{
+        text-align: center;
+        border:1px;
+    }
+    table { 
+        float:left;
+        border:1px solid #000; 
+        font-family: 微軟正黑體; 
+        font-size:16px; 
+        width:100%;
+        border:1px solid #000;
+        text-align:center;
+        border-collapse:collapse;
+        
+    } 
+    th { 
+      background-color: #009FCC;
+      padding:10px;
+      border:1px solid #000;
+      width:50px;
+      color:#fff;
+    } 
+    td { 
+        border:1px solid #000;
+        padding:5px;
+        width:65px;
+        height:50px;
+    } 
+    
+    #Header{
+        width:800px;
+        height:200px;
+        text-align:center;
+        line-height:80px;
+        font-size:15px;
+        color:#000000;
+        font-weight:bold;
+        background-color:#f9c81e;
+        margin: auto;
+		border-radius:25px;
+		
+    }
+    
+    #body{
+        width: 90%;
+        height:80%;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        
+    }
+    
+    #Right{
+        width: 50%;
+        height:auto;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        vertical-align:super;
+        /* float:right;  */
+        
+    }
+    
+    #Left{
+        width: 50%;
+        height:80%;
+        text-align:center;
+        line-height:280px;
+        font-size:15px;
+        color:#f9c81e;
+        font-weight:bold;
+        margin: auto;
+        vertical-align:super;
+       /* float:left; */
+    }
+    
+    #search{
+        width: 50%;
+        height:80%;
+        margin: auto;
+        
+    }
+    
+    #loading {
+    position: fixed;
+    z-index: 400;
+    width: 90%;
+    height: 80%;
+    top: 250;
+    left: 5%;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #595758;
+    background-color: #ffffff;
+    display:none
+    }
+
+    
+</style>
+</head>
+
+
+
+
+
+
+
+<body>
+	 <template id="searchlist">
+		<table >
+			<tr ><th colspan="8" @click='toggle()'>{{date}} ▲</th></tr>
+			<tr v-show="showtable"><th>時間</th>
+				<th>主隊</th>
+				<th>客隊</th>
+				<th>主場賠率</th>
+				<th>客場賠率</th>
+				<th>平手賠率</th>
+				<th>投注數</th>
+			</tr>
+			
+			<tr v-show="showtable" v-for = "(v1 , key1 ) in v" >
+				<td>{{v1.time}}</td>
+				<td>{{v1.teamA}}</td>
+				<td>{{v1.teamB}}</td>
+				<td>{{v1.odds_home}}</td>
+				<td>{{v1.odds_draw}}</td>
+				<td>{{v1.odds_away}}</td>
+				<td>{{v1.bet}}</td>
+			</tr>
+		</table>
+	</template>
+	
+	
+	<template id="updatelist">
+		<table>
+				<tr><th colspan="8">資料已更新</th></tr>
+				<tr><th>日期</th>
+				<th>時間</th>
+				<th>主隊</th>
+				<th>客隊</th>
+				<th>主場賠率</th>
+				<th>客場賠率</th>
+				<th>平手賠率</th>
+				<th>投注數</th></tr>
+				<tr v-for="data in upddata">
+					<td>{{data.date}}</td>
+					<td>{{data.time}}</td>
+					<td>{{data.teamA}}</td>
+					<td>{{data.teamB}}</td>
+					<td>{{data.odds_home}}</td>
+					<td>{{data.odds_draw}}</td>
+					<td>{{data.odds_away}}</td>
+					<td>{{data.bet}}</td>
+				</tr>
+			</table>
+	</template>
+	
+	
+	<template id="insertlist">
+		<table>
+				<tr><th colspan="8">資料已寫入</th></tr>
+				<tr><th>日期</th>
+				<th>時間</th>
+				<th>主隊</th>
+				<th>客隊</th>
+				<th>主場賠率</th>
+				<th>客場賠率</th>
+				<th>平手賠率</th>
+				<th>投注數</th></tr>
+				<tr v-for="data in insdata">
+					<td>{{data.date}}</td>
+					<td>{{data.time}}</td>
+					<td>{{data.teamA}}</td>
+					<td>{{data.teamB}}</td>
+					<td>{{data.odds_home}}</td>
+					<td>{{data.odds_draw}}</td>
+					<td>{{data.odds_away}}</td>
+					<td>{{data.bet}}</td>
+				</tr>
+			</table>
+	</template>
+		
+	<div id='sport'>
+		
+		<!-- 控制面板 -->
+		<div id="Header" style="line-height:40px">
+			<form id='search'>
+				日期：<input id='txt_date1' style="line-height:26px" type='text' name='date1'> ~ <input id='txt_date2' style="line-height:26px" type='text' name='date2'><br>
+				主隊：<input id='txt_teamA' style="line-height:26px" type='text' name='hometeam'><br>
+				客隊：<input id='txt_teamB' style="line-height:26px" type='text' name='awayteam'><br> 
+				<input style="line-height:26px" type='button' value='搜尋' id='search_but' @click='search()' >  
+			</form>
+			
+			<form id='update'>
+				<input style="line-height:26px" type='button' value='更新資料' id='update_but' @click='update()'>
+			</form>
+		</div>
+		
+		
+		<!-- 表單顯示區 -->
+		<div id='body'>
+			
+			<div v-if="z=='0'">
+				<p></p>
+				<img src="img/loading.gif" alt="loading.." />
+			</div> 
+			<!-- <p>{{z}}</p> -->
+			<!-- <div v-if="k">kkkkkkkkkkkkkkkkks</div> -->
+            
+            <search_list  :date="date" :v="v"  v-if="z=='1'" v-for ="(v , date) in showdata"></search_list>
+            <update_list  :upddata="upddata"  v-if="z=='2'" ></update_list>
+			<insert_list  :insdata="insdata"  v-if="z=='2'"></insert_list>
+		</div>
+	</div>	
+</body>
+</html>
+
+<script
+  src="https://code.jquery.com/jquery-3.3.1.min.js"
+  integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
+<script src="http://localhost:8001/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="controller.js"></script>
